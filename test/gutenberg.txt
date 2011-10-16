@@ -1,0 +1,3 @@
+http://www.gutenberg.org/ebooks/10.txt.utf8
+http://www.gutenberg.org/ebooks/7477.txt.utf8
+http://www.gutenberg.org/ebooks/8117.txt.utf8

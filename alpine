@@ -1,0 +1,432 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+sub get_work;
+sub get_book;
+
+sub book_of_wonder;
+sub get_illos;
+sub get_float;
+
+sub kjv;
+sub get_chapter;
+
+sub demons;
+sub get_intro;
+sub add_illos;
+
+sub get_tex;
+sub make_table;
+sub make_list;
+
+my $fontsize = '12pt'; #'10pt';
+my $cover_image_height='3.7in';
+my $illo_height = '4.1in';
+my $bmargin = '.25in';#'.65in';
+
+my $SEPARATOR = 4; # default for KJV and Demons
+my $book = shift @ARGV or die "$0 [chapter part section|book1 .. bookN]\n";
+
+my $section;
+my $part;
+if ($ARGV[1] and ($ARGV[1] =~ /^\d+$/)) {
+    $part = shift @ARGV;
+    $section = shift @ARGV;
+}
+
+print STDERR "Book [$book] Part [$part] Section [$section]\n";
+
+my $author = '';
+my $LAST = '';
+
+# Psalms goes up to 150
+my @numerals = qw/O I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX/;
+
+my $work = get_work;
+if ($work =~ /The Book of Wonder/) {
+    $author = 'Lord Dunsany';
+    $SEPARATOR = 3;
+}
+
+my $intro = '';
+if (($work eq 'Demons') and ($section == 1) and ($book =~ /introductory/i)) {
+    $intro = get_intro;
+}
+
+my $title;
+if ($work eq 'Vandals') {
+    $title = 'Vandals and Varmints';
+    $author = 'Players Book';
+} else {
+  do {
+    $title = get_book;
+  } until ($title =~ /$book/i);
+}
+
+my $chapter_name;
+if ($work eq 'Demons') {
+    $chapter_name = $title;
+    $title = $work;
+    $author = 'Fyodor Dostoevsky';
+}
+
+print qq|
+\\documentclass[$fontsize]{article}
+\\title{$title}
+\\usepackage[bmargin=$bmargin, lmargin=.25in, rmargin=.25in, tmargin=.25in, paperwidth=4.25in, paperheight=5.5in]{geometry}
+\\usepackage{graphicx}
+\\begin{document}
+\\thispagestyle{empty}
+\\begin{center}
+\\textbf{\\Large $title}\\\\
+|;
+
+if ($author) {
+    print qq|\\textbf{$author}\\\\
+|;
+}
+print qq|
+\\end{center}
+|;
+
+my $output;
+if ($work =~ /Book of Wonder/) {
+    $output = book_of_wonder;
+    while ($book = shift @ARGV) {
+	$title = <STDIN>; chomp; chop;
+	while ($title !~ /$book/i) {
+	    $title = get_book;
+	}
+	$output .= qq|\\begin{center}
+\\textbf{\\Large $title}\\\\
+\\end{center}
+|;
+	$output .= book_of_wonder;
+    }
+} elsif ($work eq 'Demons') {
+    for (my $i = 0; $i < $section; ++$i) {
+	$output = demons;
+    }
+
+    $output =~ s/"([a-zA-Z ,]+)"/`$1'/gs;
+    $output =~ s/^(\s*)"/$1``/gm;
+    $output =~ s/"([A-Za-z].*?)"/``$1"/gs;
+    $output =~ s/ê/\\^e/g;
+    $output =~ s/à/\`a/g;
+
+    while ($output =~ /"(.*?)"/g) {
+	
+    }
+#    my $lq = "``";
+#    my $rq = '"';
+#    $output =~ s/"(.*?)"/if($1&&($1 =~ m!vspace!)){$1}else{$1}/egs;
+    $output =~ s/^_(.*?)_([^[:print:]*])$/\\emph{$1}\n\n/mg;
+    $output =~ s/_(.*?)_/\\emph{$1}/gs;
+
+    if ($book =~/INTRODUCTORY/i) {
+	$output =~
+	    s/^(.+?VERHOVENSKY.)/\n{\\scriptsize \\noindent $1}\n\\vspace{$fontsize}\n/s;
+	$output = qq|\\begin{center}
+\\includegraphics[height=$cover_image_height]{demons-1.jpg}
+\\end{center}
+\\hyphenation{STE-PAN TROF-IM-OV-ITCH VER-HOV-EN-SKY}
+$intro
+\\setcounter{page}{1}
+$output
+|;
+    };
+
+#\\textbf{\\small PART $part\\\\ $chapter_name\\\\ book $book_name}\\\\
+    my $book_name = lc($numerals[$section]);
+	$output = qq|\\begin{center}
+\\textbf{\\small PART $part\\\\ $chapter_name}\\\\
+\\end{center}
+$output
+|;
+} elsif ($work eq 'Vandals') {
+    $output = get_tex;
+} else {
+    $output = kjv;
+}
+
+sub get_intro {
+    my $text = '{\\scriptsize ';
+    my $line;
+
+    while ($line = <STDIN>) {
+	last if ($line =~ /^1916/);
+    }
+    if (eof STDIN) {
+	die "Dang!";
+    }
+    my $blanks = 0;
+    while ($blanks < $SEPARATOR) {
+	$line = <STDIN>;
+	if ($line =~ /^\s*$/) {
+	    $blanks++;
+	} else {
+	    if ($blanks) {
+		$text .= "\\vspace{$fontsize}\n";
+		$blanks = 0;
+	    }
+	}
+
+	$line =~ s/^(\s*)"/$1``/g;
+	$text .= $line."\n";
+    }
+    $text .= '}';
+    return $text;
+}
+
+print qq|
+$output
+
+\\vfill
+\\begin{center}
+{\\fontfamily{phv}\\selectfont 
+Modern Hacker Library\\\\books.modernhacker.com}
+\\end{center}
+\\end{document}
+|;
+
+# returns (string: "chapter text", boolean: END_OF_BOOK)
+
+# FIXME Job 7 and 22 do not begin on a new line
+sub get_chapter {
+    my $ch = shift;
+
+    my $text = $LAST;
+    my $blanks = 0;
+
+    while (my $line = <STDIN>) {
+	if ($line =~ /^(\d+):(\d+)\s*(.*)$/) {
+	    my $rest = $3;
+	    $blanks = 0;
+
+	    if (($1 > $ch) and ($2 == 1)) {
+		$LAST = '$^{'.$2.'}$';
+		$rest =~ s/(\d+):(\d+)/\$^{$2}\$/g;
+		$LAST .= $rest;
+
+		return ($text, 0);
+	    } else {
+	      $text .= '$^{'.$2.'}$';
+	      $rest =~ s/(\d+):(\d+)/\$^{$2}\$/g;
+	      $text .= $rest;
+	    }
+	} elsif ($line =~ /^\s*$/) {
+	    if ($blanks == 0) { $text .= "\n\n" }
+	    if (++$blanks == 4) { return ($text, 1) }
+	} elsif ($line =~ /^End of the Project Gutenberg Edition of the /) {
+	  die "Ran out of book!\n";
+	} else {
+	    $line =~ s/(\d+):(\d+)\s*/\$^{$2}\$/g;
+	    $text .= $line;
+	    $blanks = 0;
+	}
+    }
+}
+
+sub get_tex {
+    my $output = '';
+    while (<STDIN>) {
+#    s/&/and/g;
+	if (/^\*+\s*(.*?)$/) {
+	    $output .= "\\section{$1}\n";
+	} elsif (m!^TABLE ([/a-zA-Z0-9\.-]+)!) {
+	    $output .= make_table($1); 
+	} elsif (m!^LIST ([/a-zA-Z0-9\.-]+)!) {
+	    $output .= make_list($1);
+	} else {
+	    $output .= $_;
+	}
+    }
+    return $output;
+}
+
+sub make_list {
+    my $filename = shift;
+    my $output = "\\begin{tabular}{r|l}\n";
+    my $i = 1;
+    open F, $filename or die $filename.':'.$!;
+    while (<F>) {
+	chomp;
+	s/\.\.\./\\ldots /g;
+	s/^          /\\hspace{.7in}/;
+	$output .= "$i & $_\\\\\n";
+	++$i;
+    }
+    $output .= "\\end{tabular}\n\n\n";
+    return $output;
+}
+
+sub make_table {
+    my $filename = shift;
+    my $output = '';
+    for (my $page=1; $page <= 10; ++$page) {
+	open F, $filename or die $filename.':'.$!;
+	$output .= "\\begin{tabular}{r|l l r|l}\n";
+	$output .=
+	    " & Table ".(2*$page-1)." & & & Table ".(2*$page)." \\\\\\hline\n";
+	for (1..$page-1) { scalar <F> }
+	for (my $i = 1; $i <= 20; ++$i) {
+	    my $line1 = <F>; chomp $line1;
+	    for (1..9) { scalar <F> }
+	    my $line2 = <F>; chomp $line2;
+	    for (1..9) { scalar <F> }
+	    $line1 =~ s/ï/\\"{\\i}/g;
+	    $line2 =~ s/ï/\\"{\\i}/g;
+	    $output .= sprintf "%2d & $line1 & & %2d & $line2\\\\\n", $i, $i;
+	}
+	close F;
+	$output .= "\\end{tabular}\n\n\n";
+    }
+    return $output;
+}
+
+sub get_book {
+    my $blanks = 0;
+    while (<STDIN>) {
+	if (/^\s*$/) {
+	    ++$blanks;
+	    if ($blanks == $SEPARATOR) {
+		$_ = <STDIN>; chomp; chop; #^M\n
+		if ($_) { return $_ } else { $blanks = 0; }
+	    }
+	} else {
+	    $blanks = 0;
+	}
+    }
+    die "get_book: ran out of book!\n";
+}
+
+sub book_of_wonder {
+    my $blanks = 0;
+    my $nlines = 0;
+    my $text = qq|\\begin{center}
+\\includegraphics[height=4in]{simegnoles.jpg}
+\\end{center}
+|;
+
+    my @illos = get_illos;
+    while (my $line = <STDIN>) {
+	++$nlines;
+	if ($line =~ /^\s*$/) {
+	    ++$blanks;
+	    if ($blanks == $SEPARATOR) {
+		$text =~ s/"(.*?)"/``$1"/gs;
+		$text =~ s/_(.*?)_/\\emph{$1}/gs;
+
+		# at evenly spaced paragraph breaks, insert floating images
+		my $lines_per_illo = int($nlines / ($#illos+2));
+		my $text_i = 0;
+		for (my $illo_i = 0; $illo_i <= $#illos; ++$illo_i) {
+		    for (1..$lines_per_illo) {
+			$text_i = index($text, "\n", $text_i+1);
+		    }
+		    substr($text, $text_i, 0) = get_float($illos[$illo_i]);
+		}
+		return $text;
+	    }
+	} else {
+	    $blanks = 0;
+	}
+	$text .= $line;
+    }
+    die "Could not find end of story!\n";
+}
+
+sub add_illos {
+    my $nlines = shift;
+    my $text = shift;
+
+    my @illos = get_illos;
+
+    # at evenly spaced paragraph breaks, insert floating images
+    my $lines_per_illo = int($nlines / ($#illos+2));
+    my $text_i = 0;
+    for (my $illo_i = 0; $illo_i <= $#illos; ++$illo_i) {
+	for (1..$lines_per_illo) {
+	    $text_i = index($text, "\n", $text_i+1);
+	}
+	substr($text, $text_i, 0) = get_float($illos[$illo_i]);
+    }
+    return $text;
+}
+
+sub demons {
+    my $blanks = 0;
+    my $text = '';
+    if ($section > 1) {
+
+    }
+    my $nlines = 0;
+    while (my $line = <STDIN>) {
+	$nlines++;
+	if ($line =~ /^\s*$/) {
+	    if (++$blanks >= $SEPARATOR) {
+		return add_illos ($nlines, $text);
+	    }
+	} else {
+	    if ($blanks) {
+		$text .= "\n\\vspace{$fontsize}\n";
+		$nlines++;
+		$blanks = 0;
+	    }
+	}
+	$text .= $line;
+    }
+}
+
+sub kjv {
+    my $END_OF_BOOK = 0;
+    my $text;
+    my $output = '';
+    for (my $chapter = 1; ! $END_OF_BOOK; ++$chapter) {
+	($text, $END_OF_BOOK) = get_chapter($chapter);
+	$output .= qq|
+\\begin{center}
+\\textbf{\\small CHAPTER $numerals[$chapter]}
+\\end{center}
+$text
+
+|;
+    }
+    return $output;
+}
+
+sub get_work {
+    my $line = <STDIN>;
+    if ($line =~ /(The Book of Wonder)/) { return $1 }
+    if ($line =~ /Welcome To The World of Free Plain Vanilla Electronic Texts/) {
+	while (<STDIN>) {
+	    if (/(The King James Bible)/) { return $1 }
+	}
+    }
+    if ($line =~ /The Possessed, by Fyodor Dostoevsky/) { return 'Demons' }
+    if ($line =~ /(Vandals)/) { return $1 }
+
+    # unrecognized work
+    return $line;
+}
+
+sub get_illos {
+    if ($book eq 'gnoles') {
+	return ("simebabies.jpg", "simewolves.jpg");
+    } else {
+	return ("demons-2.jpg", "demons-3.jpg", "demons-4.jpg", "demons-5.jpg",
+		"demons-6.jpg", "demons-7.jpg", "demons-8.jpg", "demons-9.jpg");
+    }
+}
+
+sub get_float {
+    my $name = shift;
+
+    return qq|\\begin{figure}[!ht]
+\\begin{center}
+\\includegraphics[height=$illo_height]{$name}
+\\end{center}
+\\end{figure}|;
+}
