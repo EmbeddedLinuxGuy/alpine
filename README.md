@@ -24,7 +24,7 @@ To run:
 
     alpine - < vandals.org > vandals.tex
 
-    alpine gnoles < book-of-wonder.txt < gnoles.tex
+    alpine gnoles < book-of-wonder.txt > gnoles.tex
 
     alpine introductory 1 1  < demons.txt > demons-1.tex
 

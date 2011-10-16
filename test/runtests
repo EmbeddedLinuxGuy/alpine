@@ -1,0 +1,41 @@
+#!/bin/sh
+
+A=../alpine
+T=~/txt
+
+# Populate $T with text files from
+# http://www.gutenberg.org/ebooks/10.txt.utf8
+# http://www.gutenberg.org/ebooks/7477.txt.utf8
+# http://www.gutenberg.org/ebooks/8117.txt.utf8
+
+$A daniel < $T/kjv.txt > new.tex
+diff -u daniel.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
+$A - < vandals.org > new.tex
+diff -u vandals.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
+$A gnoles < $T/book-of-wonder.txt > new.tex
+diff -u gnoles.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
+$A introductory 1 1  < $T/demons.txt > new.tex
+diff -u demons.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
+echo
+echo All tests pass!
+rm new.tex

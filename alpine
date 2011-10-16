@@ -28,15 +28,15 @@ my $bmargin = '.25in';#'.65in';
 
 my $SEPARATOR = 4; # default for KJV and Demons
 my $book = shift @ARGV or die "$0 [chapter part section|book1 .. bookN]\n";
+print STDERR "Book [$book]\n";
 
 my $section;
 my $part;
 if ($ARGV[1] and ($ARGV[1] =~ /^\d+$/)) {
     $part = shift @ARGV;
     $section = shift @ARGV;
+    print STDERR "Part [$part] Section [$section]\n";
 }
-
-print STDERR "Book [$book] Part [$part] Section [$section]\n";
 
 my $author = '';
 my $LAST = '';
