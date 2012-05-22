@@ -88,7 +88,6 @@ print qq|
 \\title{$title}
 \\usepackage[bmargin=$bmargin, lmargin=.25in, rmargin=.25in, tmargin=.25in, paperwidth=4.25in, paperheight=5.5in]{geometry}
 \\usepackage{graphicx}
-\\usepackage{wrapfig}
 \\begin{document}
 \\thispagestyle{empty}
 \\begin{center}
