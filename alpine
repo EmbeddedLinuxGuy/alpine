@@ -17,6 +17,9 @@ sub demons;
 sub get_intro;
 sub add_illos;
 
+sub dictatorship;
+sub chapter_header;
+
 sub get_tex;
 sub make_table;
 sub make_list;
@@ -49,21 +52,29 @@ if ($work =~ /The Book of Wonder/) {
     $author = 'Lord Dunsany';
     $SEPARATOR = 3;
 }
+my $title;
+
 
 my $intro = '';
 if (($work eq 'Demons') and ($section == 1) and ($book =~ /introductory/i)) {
     $intro = get_intro;
 }
 
-my $title;
 if ($work eq 'Vandals') {
     $title = 'Vandals and Varmints';
     $author = 'Players Book';
-} else {
+} else { # XXX which books does this cover?
   do {
     $title = get_book;
   } until ($title =~ /$book/i);
 }
+
+if ($work eq 'Dictatorship vs. Democracy') {
+    $author = 'Leon Trotsky';
+    $title = 'Terrorism and Communism';
+}
+
+
 
 my $chapter_name;
 if ($work eq 'Demons') {
@@ -77,6 +88,7 @@ print qq|
 \\title{$title}
 \\usepackage[bmargin=$bmargin, lmargin=.25in, rmargin=.25in, tmargin=.25in, paperwidth=4.25in, paperheight=5.5in]{geometry}
 \\usepackage{graphicx}
+\\usepackage{wrapfig}
 \\begin{document}
 \\thispagestyle{empty}
 \\begin{center}
@@ -92,7 +104,38 @@ print qq|
 |;
 
 my $output;
-if ($work =~ /Book of Wonder/) {
+
+if ($work eq 'Dictatorship vs. Democracy') {
+    $output .= chapter_header;
+    $output .= q|\\begin{center}
+\\begin{verbatim}
+                              /  
+                   __       //   
+                   -\= \=\ //    
+                 --=_\=---//=--  
+               -_==/  \/ //\/--  
+                ==/   /O   O\==--
+   _ _ _ _     /_/    \  ]  /--  
+  /\ ( (- \    /       ] ] ]==-  
+ (\ _\_\_\-\__/     \  (,_,)--   
+(\_/                 \     \-    
+\/      /       (   ( \  ] /)
+/      (         \   \_ \./ )    
+(       \         \      )  \    
+(       /\_ _ _ _ /---/ /\_  \   
+ \     / \     / ____/ /   \  \  
+  (   /   )   / /  /__ )   (  )  
+  (  )   / __/ '---`       / /   
+  \  /   \ \             _/ /   
+  ] ]     )_\_         /__\/     
+  /_\     ]___\                  
+ (___)                           
+\\end{verbatim}
+\\end{center}
+\\pagebreak
+|;
+    $output .= dictatorship;
+} elsif ($work =~ /Book of Wonder/) {
     $output = book_of_wonder;
     while ($book = shift @ARGV) {
 	$title = <STDIN>; chomp; chop;
@@ -302,6 +345,49 @@ sub get_book {
     die "get_book: ran out of book!\n";
 }
 
+sub chapter_header {
+    my $line;
+    do {
+	$line = <STDIN>
+    } while ($line =~ /^\s*$/);
+    print STDERR "[$book]\n";
+    return qq|\\begin{center}
+\\textbf{\\small ${numerals[$book]}. \\hspace{1em} $line}
+\\end{center}
+|;
+}
+    
+sub dictatorship {
+    my $blanks = 0;
+    my $text = '';
+    my $line;
+    while ($blanks < $SEPARATOR) {
+	$line = <STDIN>;
+	if ($line =~ /^\s*$/) {
+	    ++$blanks;
+	} else {
+	    if ($blanks) {
+		$text .= "\\vspace{$fontsize}\n";
+		$blanks = 0;
+	    }
+	}
+	$line =~ s/--/ -- /g;
+	$line =~ s/^(\s*)"/$1``/g;
+#	$line =~ s/_//g;
+	$text .= $line;
+    }
+
+    $text =~ s/ "(.*?)"/ ``$1"/gs;
+    $text =~ s/_(.*?)_/\\emph{$1}/gs;
+    $text =~ s/per cent\. /per cent\.\\ /gs;
+#    $text =~ s/--/ -- /g;
+#	$text =~ s/--/ -- /g;
+#	$text =~ s/^(\s*)"/$1``/g;
+#	$line =~ s/_//g;
+    
+    return $text;
+}
+
 sub book_of_wonder {
     my $blanks = 0;
     my $nlines = 0;
@@ -407,6 +493,7 @@ sub get_work {
     }
     if ($line =~ /The Possessed, by Fyodor Dostoevsky/) { return 'Demons' }
     if ($line =~ /(Vandals)/) { return $1 }
+    if ($line =~ /(Dictatorship vs. Democracy)/) { return $1 }
 
     # unrecognized work
     return $line;
