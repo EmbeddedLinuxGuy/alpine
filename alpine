@@ -107,30 +107,14 @@ my $output;
 
 if ($work eq 'Dictatorship vs. Democracy') {
     $output .= chapter_header;
-    $output .= q|\\begin{center}
+    $output .= qq|\\begin{center}
 \\begin{verbatim}
-                              /  
-                   __       //   
-                   -\= \=\ //    
-                 --=_\=---//=--  
-               -_==/  \/ //\/--  
-                ==/   /O   O\==--
-   _ _ _ _     /_/    \  ]  /--  
-  /\ ( (- \    /       ] ] ]==-  
- (\ _\_\_\-\__/     \  (,_,)--   
-(\_/                 \     \-    
-\/      /       (   ( \  ] /)
-/      (         \   \_ \./ )    
-(       \         \      )  \    
-(       /\_ _ _ _ /---/ /\_  \   
- \     / \     / ____/ /   \  \  
-  (   /   )   / /  /__ )   (  )  
-  (  )   / __/ '---`       / /   
-  \  /   \ \             _/ /   
-  ] ]     )_\_         /__\/     
-  /_\     ]___\                  
- (___)                           
-\\end{verbatim}
+|;
+    my $file = "trotsky-$book.txt";
+    open (F, "<$file") or die "No such file: $file";
+    while (<F>) { $output .= $_ }
+    close F;
+    $output .= qq|\\end{verbatim}
 \\end{center}
 \\pagebreak
 |;
