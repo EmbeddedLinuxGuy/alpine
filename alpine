@@ -205,9 +205,17 @@ sub dhammapada {
     do {
 	$line = <STDIN>;
     } while ($line !~ /^==Chapter I/);
-
-    $text = <STDIN>;
-    return $text;
+    while ($line = <STDIN>) {
+	if ($line !~ /\w/) {
+	    $text .= "\n\n";
+	} elsif ($line =~ /^==Chapter /) {
+	    return $text;
+	} else {
+	    $line =~ s/{{verse\|chapter=.*}}//;
+	    $line =~ s/^(\s*)"/$1``/g;
+	    $text .= $line;
+	}
+    }
 }
 
 sub get_intro {
