@@ -20,6 +20,10 @@ sub add_illos;
 sub dictatorship;
 sub chapter_header;
 
+sub wiki_source;
+sub get_translator;
+sub dhammapada;
+
 sub get_tex;
 sub make_table;
 sub make_list;
@@ -60,7 +64,11 @@ if (($work eq 'Demons') and ($section == 1) and ($book =~ /introductory/i)) {
     $intro = get_intro;
 }
 
-if ($work eq 'Vandals') {
+if ($work =~ /^The Dhammapada/) {
+    $title = $work;
+    $author = get_translator;
+    $author =~ s/ü/\\"{u}/g;
+} elsif ($work eq 'Vandals') {
     $title = 'Vandals and Varmints';
     $author = 'Players Book';
 } else { # XXX which books does this cover?
@@ -107,6 +115,7 @@ my $output;
 if ($work eq 'Dictatorship vs. Democracy') {
     $output .= chapter_header;
     $output .= qq|\\begin{center}
+\\begin{tiny}
 \\begin{verbatim}
 |;
     my $file = "trotsky-$book.txt";
@@ -114,6 +123,7 @@ if ($work eq 'Dictatorship vs. Democracy') {
     while (<F>) { $output .= $_ }
     close F;
     $output .= qq|\\end{verbatim}
+\\end{tiny}
 \\end{center}
 \\pagebreak
 |;
@@ -173,8 +183,22 @@ $output
 |;
 } elsif ($work eq 'Vandals') {
     $output = get_tex;
-} else {
+} elsif ($work eq 'The King James Bible') {
     $output = kjv;
+} elsif ($work =~ /^The Dhammapada/) {
+    $output = dhammapada;
+}
+
+sub dhammapada {
+    my $text = '';
+    my $line = '';
+
+    do {
+	$line = <STDIN>;
+    } while ($line !~ /^==Chapter I/);
+
+    $text = <STDIN>;
+    return $text;
 }
 
 sub get_intro {
@@ -466,6 +490,22 @@ $text
     return $output;
 }
 
+sub wiki_source {
+    while (my $line = <STDIN>) {
+	if ($line =~ /^\s*\|\s*title\s*=\s*(.*?)$/) {
+	    return $1;
+	}
+    }
+}
+
+sub get_translator {
+    while (my $line = <STDIN>) {
+	if ($line =~ /^\s*\|\s*translator\s*=\s*(.*?)$/) {
+	    return $1;
+	}
+    }
+}
+
 sub get_work {
     my $line = <STDIN>;
     if ($line =~ /(The Book of Wonder)/) { return $1 }
@@ -478,6 +518,9 @@ sub get_work {
     if ($line =~ /(Vandals)/) { return $1 }
     if ($line =~ /(Dictatorship vs. Democracy)/) { return $1 }
 
+    if ($line =~ /^{{header/) {
+	return wiki_source;
+    }
     # unrecognized work
     return $line;
 }
