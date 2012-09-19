@@ -57,6 +57,13 @@ if [ $? != 0 ]; then
     exit
 fi
 
+$A 2 < $T/trotsky.txt > new.tex
+diff -u trotsky-2.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
 echo
 echo All tests pass!
 rm new.tex
