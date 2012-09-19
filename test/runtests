@@ -36,6 +36,27 @@ if [ $? != 0 ]; then
     exit
 fi
 
+$A introductory 1 1  < $T/demons.txt > new.tex
+diff -u demons.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
+$A 1 < $T/dhammapada.txt > new.tex
+diff -u dhammapada.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
+$A 1 < $T/trotsky.txt > new.tex
+diff -u trotsky-1.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit
+fi
+
 echo
 echo All tests pass!
 rm new.tex
