@@ -1,19 +1,19 @@
 Alpine
 ======
 
-A document formatting system by Jesse Zbikowski
-
 v 0.2, 19 Sep 2012
 
-This program takes a plain text file along with accompanying images or
-tables, and generates a ready-to-print PDF booklet. Currently
-supported texts are:
+Alpine takes a plain text file as input, such as UTF-8 ebooks from
+Gutenberg, plus accompanying images or tables, and generates a
+ready-to-print PDF booklet (4-up US Letter size, 4 1/4" x 5 1/2"). It
+uses PDFLaTeX for typesetting, and PDF::Reuse for N-up
+bookletizing. Currently supported texts are:
 
 * Individual books (e.g. the Book of Daniel) from the King James Bible (via Gutenberg.org)
 
-* Chapters from Dostoevsky's "Demons" (via Gutenberg.org)
+* Individual stories from "The Book of Wonder" by Dunsany (via Gutenberg.org)
 
-* Books from "The Book of Wonder" by Dunsany (via Gutenberg.org)
+* Chapters from Dostoevsky's "Demons" (via Gutenberg.org)
 
 * Chapters from "Dictatorship vs. Democracy" by Trotsky (via Gutenberg.org)
 
@@ -46,5 +46,10 @@ To run:
 
 Then:
 
-    pdflatex infile.tex
-    pdf-assemble infile.pdf outfile.pdf
+    pdflatex file.tex
+    pdf-assemble file.pdf outside.pdf outside
+    pdf-assemble file.pdf inside.pdf inside
+
+Note: pdf-assemble may require hand-editing depending on the number of pages in the document.
+
+To do: wrap in a web UI which generates booklets based on form input.
