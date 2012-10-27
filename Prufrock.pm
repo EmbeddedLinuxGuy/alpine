@@ -6,27 +6,42 @@ use warnings;
 BEGIN {}
 
 sub Prufrock::title { 'The Love Song of J.\ Alfred Prufrock' }
-$Prufrock::title_text = 'The Love Song of J. Alfred Prufrock';
-sub Prufrock::author { 'T S Eliot' }
+sub Prufrock::author { 'T.\ S.\ Eliot' }
 $Prufrock::work_name = 'Prufrock and Other Observations, by T. S. Eliot';
 
 sub Prufrock::output {
     my $txt = '';
     my $blanks = 0;
-    while (<STDIN>) {
-	chomp;
-	s/(\r|\s)*$//;
-	if ($_ =~ /^\s*$/) {
+    my $l = <STDIN>;
+    my $n = <STDIN>;
+    
+    do {
+	if ($n =~ /^     /) {
+	    $l .= $n;
+	    $n = <STDIN>;
+	}
+
+	chomp $l;
+	$l =~ s/(\r|\s)*$//;
+	if ($l =~ /^\s*$/) {
 	    ++$blanks;
 	    if ($blanks == 4) {
+		$txt =~ s/"(.*?)"/``$1"/gs;
 		return $txt;
+	    } else {
+		$txt .= "\n";
 	    }
-	    $txt .= "\n";
 	} else {
 	    $blanks = 0;
-	    $txt .= "$_\\\\\n";
+	    if ($l =~ /^   /) {
+		$l =~ s/^   //;
+		$txt .= "\\hspace*{2em}";
+	    }
+	    $txt .= "$l\\newline\n";
 	}
-    }
+	$l = $n;
+    } while ($n = <STDIN>);
+    print STDERR "Did not find end-of-poem separator\n";
 }
 
 END {}
