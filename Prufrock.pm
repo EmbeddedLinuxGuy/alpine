@@ -8,7 +8,7 @@ BEGIN {}
 sub Prufrock::title { 'The Love Song of J.\ Alfred Prufrock' }
 sub Prufrock::author { 'T.\ S.\ Eliot' }
 $Prufrock::work_name = 'Prufrock and Other Observations, by T. S. Eliot';
-
+sub Prufrock::extra_packages { "\n\\usepackage{parskip}" }
 sub Prufrock::output {
     my $txt = '';
     my $blanks = 0;

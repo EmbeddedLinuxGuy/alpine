@@ -36,6 +36,7 @@ my $fontsize = '12pt'; #'10pt';
 my $cover_image_height='3.7in';
 my $illo_height = '4.1in';
 my $bmargin = '.25in';#'.65in';
+my $extra_packages = '';
 
 my $SEPARATOR = 4; # default for KJV and Demons
 my $book = shift @ARGV or die "$0 [chapter part section|book1 .. bookN]\n";
@@ -98,11 +99,12 @@ if ($work eq 'Demons') {
 if ($work eq $Prufrock::work_name) {
     $author = Prufrock::author();
     $title = Prufrock::title();
+    $extra_packages = Prufrock::extra_packages();
 }
 
 print qq|
 \\documentclass[$fontsize]{article}
-\\title{$title}
+\\title{$title}$extra_packages
 \\usepackage[bmargin=$bmargin, lmargin=.25in, rmargin=.25in, tmargin=.25in, paperwidth=4.25in, paperheight=5.5in]{geometry}
 \\usepackage{graphicx}
 \\begin{document}
