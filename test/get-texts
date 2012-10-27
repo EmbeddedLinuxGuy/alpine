@@ -1,0 +1,6 @@
+#!/bin/sh
+
+TEXT=1459.txt.utf-8
+wget -U firefox http://www.gutenberg.org/ebooks/1459.txt.utf-8
+ln -s 1459.txt.utf-8 prufrock.txt
+

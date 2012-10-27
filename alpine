@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+use FindBin;
+use lib "$FindBin::Bin";
+use Prufrock;
+
 sub get_work;
 sub get_book;
 
@@ -89,6 +93,11 @@ if ($work eq 'Demons') {
     $chapter_name = $title;
     $title = $work;
     $author = 'Fyodor Dostoevsky';
+}
+
+if ($work eq $Prufrock::work_name) {
+    $author = Prufrock::author();
+    $title = Prufrock::title();
 }
 
 print qq|
@@ -181,7 +190,7 @@ $intro
 \\setcounter{page}{1}
 $output
 |;
-    };
+    }
 
 #\\textbf{\\small PART $part\\\\ $chapter_name\\\\ book $book_name}\\\\
     my $book_name = lc($numerals[$section]);
@@ -196,6 +205,8 @@ $output
     $output = kjv;
 } elsif ($work =~ /^The Dhammapada/) {
     $output = dhammapada;
+} elsif ($work eq $Prufrock::work_name) {
+    $output = Prufrock::output();
 }
 
 sub dhammapada {
@@ -538,6 +549,11 @@ sub get_work {
     if ($line =~ /^{{header/) {
 	return wiki_source;
     }
+
+    if ($line =~ /($Prufrock::work_name)/) {
+	return $1
+    }
+
     # unrecognized work
     return $line;
 }
