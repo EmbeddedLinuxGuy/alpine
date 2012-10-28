@@ -65,22 +65,22 @@ sub Prufrock::break_up {
     my $l = shift;
 
     if ($l =~ /^(.*),(.+?)$/) {
-	print STDERR "C $l\n";
-	$l = "$1,\\newline\n\\hspace*{.5em}$2";
+#	print STDERR "C $l\n";
+	$l = "$1,\\\\\n\\hspace*{.5em}$2";
     } elsif ($l=~ /^(.*)\)(.+?)$/) {
-	print STDERR "P $l\n";
-	$l = "$1)\\newline\n\\hspace*{.5em}$2";
+#	print STDERR "P $l\n";
+	$l = "$1)\\\\\n\\hspace*{.5em}$2";
     } elsif ($l=~ /^(.*) which (.+?)$/) {
-	print STDERR "W $l\n";
-	$l = "$1 which \\newline\n\\hspace*{.5em}$2";
+#	print STDERR "W $l\n";
+	$l = "$1 which \\\\\n\\hspace*{.5em}$2";
     } elsif ($l=~ /^(.*) and (.+?)$/) {
-	print STDERR "A $l\n";
-	$l = "$1\\newline\n\\hspace*{.5em}and $2";
+#	print STDERR "A $l\n";
+	$l = "$1\\\\\n\\hspace*{.5em}and $2";
     } elsif ($l=~ /^(.*) the (.+?)$/) {
-	print STDERR "T $l\n";
-	$l = "$1\\newline\n\\hspace*{.5em}the $2";
+#	print STDERR "T $l\n";
+	$l = "$1\\\\\n\\hspace*{.5em}the $2";
     } else {
-	print STDERR "N $l\n";
+#	print STDERR "N $l\n";
     }
     return $l;
 }
@@ -90,7 +90,8 @@ sub Prufrock::output {
     my $blanks = 0;
     my $l = <STDIN>;
     my $n = <STDIN>;
-    
+    my $indented = 0;
+
     do {
 	chomp $l;
 	$l =~ s/(\r|\s)*$//;
@@ -107,21 +108,37 @@ sub Prufrock::output {
 	    if ($blanks == 4) {
 		$txt =~ s/"(.*?)"/``$1"/gs;
 		return $txt;
-	    } else {
-		$txt .= "\n";
 	    }
 	} else {
+	    if ($blanks == 3) {
+		$txt = "\\vspace{.25in}\\begin{center}\\begin{tabular}{\@{\\itshape}l\@{\\itshape}}
+                $txt
+                \\end{tabular}\\end{center}\\vspace{.25in}\n";
+	    } elsif ($blanks > 0) {
+		$txt .= "\n";
+		$indented = 0;
+	    }
 	    $blanks = 0;
+
 	    if ($l =~ /^   /) {
 		$l =~ s/^   //;
 		$txt .= "\\hspace*{2em}";
+		$indented = 1;
+	    } else {
+#if the previous line was indented and this line is not, start a new paragraph
+#this is a "bug" in the Gutenberg text where we fail to start a new paragraph
+#after "So how should I presume?"
+		if ($indented) {
+		    $txt .= "\n";
+		}
+		$indented = 0;
 	    }
 
 	    if (Prufrock::long_line($l)) {
 		$l = Prufrock::break_up($l);
 	    }
 
-	    $txt .= "$l\\newline\n";
+	    $txt .= "$l\\\\\n";
 	}
 	$l = $n;
     } while ($n = <STDIN>);
