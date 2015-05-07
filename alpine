@@ -57,6 +57,8 @@ my $LAST = '';
 my @numerals = qw/O I II III IV V VI VII VIII IX X XI XII XIII XIV XV XVI XVII XVIII XIX XX XXI XXII XXIII XXIV XXV XXVI XXVII XXVIII XXIX XXX XXXI XXXII XXXIII XXXIV XXXV XXXVI XXXVII XXXVIII XXXIX/;
 
 my $work = get_work;
+printf STDERR "WORK: [$work]\n";
+
 if ($work =~ /The Book of Wonder/) {
     $author = 'Lord Dunsany';
     $SEPARATOR = 3;
@@ -209,6 +211,8 @@ $output
     $output = dhammapada;
 } elsif ($work eq $Prufrock::work_name) {
     $output = Prufrock::output();
+} else {
+    $output = get_tex;
 }
 
 sub dhammapada {
@@ -266,7 +270,7 @@ $output
 \\vfill
 \\begin{center}
 {\\fontfamily{phv}\\selectfont 
-Modern Hacker Library\\\\books.modernhacker.com}
+Polar Shore Press\\\\North Beach, California 94133}
 \\end{center}
 \\end{document}
 |;
@@ -313,7 +317,9 @@ sub get_tex {
     my $output = '';
     while (<STDIN>) {
 #    s/&/and/g;
-	if (/^\*+\s*(.*?)$/) {
+    	if (/^\+\s*(.*?)$/) {
+	    $output .= "\\subsection{$1}\n";
+	} elsif (/^\*+\s*(.*?)$/) {
 	    $output .= "\\section{$1}\n";
 	} elsif (m!^TABLE ([/a-zA-Z0-9\.-]+)!) {
 	    $output .= make_table($1); 
@@ -367,12 +373,15 @@ sub make_table {
 }
 
 sub get_book {
+	#print "SEPARATOR = $SEPARATOR\n";
     my $blanks = 0;
     while (<STDIN>) {
 	if (/^\s*$/) {
 	    ++$blanks;
+		#print "$blanks blanks\n";
 	    if ($blanks == $SEPARATOR) {
-		$_ = <STDIN>; chomp; chop; #^M\n
+		#print "blanks == SEPARATOR, reading STDIN\n";
+		$_ = <STDIN>; chomp; chomp; #^M\n
 		if ($_) { return $_ } else { $blanks = 0; }
 	    }
 	} else {
@@ -539,6 +548,8 @@ sub get_translator {
 sub get_work {
     my $line = <STDIN>;
     if ($line =~ /(The Book of Wonder)/) { return $1 }
+    # XXX: Get King James Bible fixed
+    if ($line =~ /(The King James Bible)/) { return $1 }
     if ($line =~ /Welcome To The World of Free Plain Vanilla Electronic Texts/) {
 	while (<STDIN>) {
 	    if (/(The King James Bible)/) { return $1 }
