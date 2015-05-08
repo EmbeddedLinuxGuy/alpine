@@ -1,13 +1,21 @@
 #!/bin/sh
 
 A=../alpine
-T=~/txt
+T=.
 
 # Populate $T with text files from
 # http://www.gutenberg.org/ebooks/10.txt.utf8
 # http://www.gutenberg.org/ebooks/7477.txt.utf8
 # http://www.gutenberg.org/ebooks/8117.txt.utf8
 
+$A "Cult of the Dark God" < $T/dark-god.txt > new.tex
+diff -u dark-god.tex new.tex
+if [ $? != 0 ]; then
+    echo Files differ!
+    exit 1
+fi
+echo OK
+exit 0
 $A daniel < $T/kjv.txt > new.tex
 diff -u daniel.tex new.tex
 if [ $? != 0 ]; then
