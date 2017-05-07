@@ -109,6 +109,7 @@ print qq|
 \\title{$title}$extra_packages
 \\usepackage[bmargin=$bmargin, lmargin=.25in, rmargin=.25in, tmargin=.25in, paperwidth=4.25in, paperheight=5.5in]{geometry}
 \\usepackage{graphicx}
+\\pdfoptionpdfminorversion=4
 \\begin{document}
 \\thispagestyle{empty}
 \\begin{center}
@@ -325,6 +326,11 @@ sub get_tex {
 	    $output .= make_table($1); 
 	} elsif (m!^LIST ([/a-zA-Z0-9\.-]+)!) {
 	    $output .= make_list($1);
+	    # numbered list: wip
+#	} elsif (m!^\s+1\.(.+)$!) {
+#            $output .= 
+#	    $output .= $2;
+
 	} else {
 	    $output .= $_;
 	}
