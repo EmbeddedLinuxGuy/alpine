@@ -1,0 +1,77 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+use PDF::Reuse;
+
+sub addPage;
+
+my $help = "Usage: $0 infile.pdf outfile.pdf #pages {inside|outside}";
+my $INFILE = shift @ARGV || die $help;
+my $outfile = shift @ARGV || die $help;
+#my $svg = "devil.svg";
+my $svg = "devil.pdf";
+
+print "INFILE = [$INFILE]\n";
+prFile($outfile);
+prMbox(0, 0, 612, 792);
+
+my $pages = shift @ARGV or die $help;
+my $sheets = int($pages / 8);
+
+my $side = shift @ARGV or die $help;
+
+# Outside
+# 8 (N)    1
+# 6 (N-2)  3
+if ($side eq "outside") {
+ for my $i (0 .. $sheets-2) {
+     addPage($pages-4*$i, 1+4*$i,
+ 	    $pages-2-4*$i, 3+4*$i);
+     prPage();
+ }
+ print("addPage($pages-4*($sheets-1), 1+4*($sheets-1),
+ 	$pages-2-4*($sheets-1), 3+4*($sheets-1));\n");
+addPage($pages-4*($sheets-1), 1+4*($sheets-1),
+ 	$pages-2-4*($sheets-1), 3+4*($sheets-1));
+# addPage(2, 1+4*($sheets-1),
+# 	2, 3+4*($sheets-1));
+} else {
+# Inside
+# 2  7 (N-1)
+# 4  5 (N-3)
+  for my $i (0 .. $sheets-2) {
+       addPage(2+4*$i, $pages-1-4*$i,
+   	    4+4*$i, $pages-3-4*$i);
+       prPage();
+   print "ADDING PAGE\n";
+  }
+  print "addPage(2+4*($sheets-1), $pages-1-4*($sheets-1),
+	4+4*($sheets-1), $pages-3-4*($sheets-1));\n";
+  addPage(2+4*($sheets-1), $pages-1-4*($sheets-1),
+	4+4*($sheets-1), $pages-3-4*($sheets-1));
+}
+
+  prEnd();
+
+# a b
+# c d
+sub addPage {
+    my ($a, $b, $c, $d) = @_;
+    my $tolerant = "yes";
+    
+#  $INFILE = $svg;
+print "INFILE = [$INFILE]\n";
+
+  prForm( { file => $INFILE, x =>   0, y => 396, page => $a, tolerant => $tolerant} );
+  prForm( { file => $INFILE, x => 306, y => 396, page => $b, tolerant => $tolerant} );
+  prForm( { file => $INFILE, x =>   0, y =>   0, page => $c, tolerant => $tolerant} );
+  prForm( { file => $INFILE, x => 306, y =>   0, page => $d, tolerant => $tolerant} );
+
+#  prForm( { file => $svg, x =>   0, y => 396, page => 1} );
+#  prForm( { file => $svg, x => 306, y => 396, page => 1} );
+#  prForm( { file => $svg, x =>   0, y =>   0, page => 1} );
+#  prForm( { file => $svg, x => 306, y =>   0, page => 1} );
+
+}
