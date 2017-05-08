@@ -6,7 +6,9 @@ use warnings;
 use FindBin;
 use lib "$FindBin::Bin";
 use Prufrock;
+use HonestThief;
 
+# entry point for document
 sub get_work;
 sub get_book;
 
@@ -78,6 +80,9 @@ if ($work =~ /^The Dhammapada/) {
 } elsif ($work eq 'Vandals') {
     $title = 'Vandals and Varmints';
     $author = 'Players Book';
+} elsif ($work eq $HonestThief::work_name) {
+    $author = HonestThief::author();
+    $title = HonestThief::title();
 } else { # XXX which books does this cover?
   do {
     $title = get_book;
@@ -88,8 +93,6 @@ if ($work eq 'Dictatorship vs. Democracy') {
     $author = 'Leon Trotsky';
     $title = 'Terrorism and Communism';
 }
-
-
 
 my $chapter_name;
 if ($work eq 'Demons') {
@@ -212,6 +215,8 @@ $output
     $output = dhammapada;
 } elsif ($work eq $Prufrock::work_name) {
     $output = Prufrock::output();
+} elsif ($work eq $HonestThief::work_name) {
+    $output = HonestThief::output();
 } else {
     $output = get_tex;
 }
@@ -229,7 +234,8 @@ sub dhammapada {
 	} elsif ($line =~ /^==Chapter /) {
 	    return $text;
 	} else {
-	    $line =~ s/{{verse\|chapter=.*}}//;
+	    # XXX Unescaped left brace in regex is deprecated
+	    $line =~ s/\{\{verse\|chapter=.*}}//;
 	    $line =~ s/^(\s*)"/$1``/g;
 	    $text .= $line;
 	}
@@ -271,7 +277,7 @@ $output
 \\vfill
 \\begin{center}
 {\\fontfamily{phv}\\selectfont 
-Polar Shore Press\\\\North Beach, California 94133}
+Polar Shore Press\\\\Edgemar, California 94044}
 \\end{center}
 \\end{document}
 |;
@@ -565,13 +571,16 @@ sub get_work {
     if ($line =~ /(Vandals)/) { return $1 }
     if ($line =~ /(Dictatorship vs. Democracy)/) { return $1 }
 
-    if ($line =~ /^{{header/) {
+    # XXX: Unescaped left brace in regex is deprecated
+    if ($line =~ /^\{\{header/) {
 	return wiki_source;
     }
 
     if ($line =~ /($Prufrock::work_name)/) {
 	return $1
     }
+
+    if ($line =~ /($HonestThief::work_name)/) { return $1 }
 
     # unrecognized work
     return $line;
